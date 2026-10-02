@@ -89,7 +89,13 @@ async function decryptWith(raw){
   const plain = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(P.i)}, key, b64(P.c));
   return new TextDecoder().decode(plain);
 }
-function show(html){ document.open(); document.write(html); document.close(); }
+// Remplacer la page n'est fiable qu'une fois l'écran de connexion entièrement chargé : appelé plus tôt
+// (réouverture avec clé mémorisée), document.open() est ignoré et le tableau de bord hérite des styles
+// de l'écran de connexion (contenu centré, débordement latéral sur téléphone).
+function show(html){
+  const go = () => { document.open(); document.write(html); document.close(); };
+  if(document.readyState === "complete") go(); else window.addEventListener("load", go, {once:true});
+}
 // « Se souvenir » : le navigateur garde la clé dérivée (jamais le mot de passe). Le sel étant fixe, elle
 // reste valable d'une publication à l'autre ; si le mot de passe change, elle est rejetée et effacée.
 (async () => {
